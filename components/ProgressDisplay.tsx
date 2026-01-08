@@ -1,6 +1,6 @@
 import { getFlagEmoji } from "@/lib/utils";
 import type { LocationData } from "@/types";
-
+import * as Flags from "country-flag-icons/react/3x2";
 interface ProgressDisplayProps {
   percentage: number;
   currentDate: string;
@@ -16,11 +16,12 @@ export default function ProgressDisplay({
   daysElapsed,
   daysRemaining,
 }: ProgressDisplayProps) {
+  const Flag = Flags[location.countryCode as keyof typeof Flags];
   return (
     <div className="w-full max-w-4xl mx-auto px-4">
       <div className="text-center mb-8">
-        <div className="flex items-center justify-center gap-2 mb-2">
-          <span className="text-2xl">{getFlagEmoji(location.countryCode)}</span>
+        <div className="flex items-center justify-center gap-3 mb-2">
+          {Flag && <Flag className="w-10 h-7 rounded shadow-md" />}
           <h2 className="text-2xl md:text-3xl font-bold text-default-900">
             {location.name}
           </h2>
