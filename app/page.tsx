@@ -66,7 +66,10 @@ export default function Home() {
         currentLocation={currentLocation}
       />
 
-      <main className="py-8 md:py-16">
+      <main
+        className="py-4 md:pt-16
+      "
+      >
         <ProgressDisplay
           percentage={progressData.percentage}
           currentDate={progressData.currentDate}

@@ -61,6 +61,10 @@ export default function Navbar({
           <GithubIcon className="text-default-500" />
         </Link>
         <ThemeSwitch />
+        <Button onClick={onLocationClick} className="flex items-center gap-2">
+          <FaMapMarkerAlt className=" h-6 text-default-500" />
+          <span className="font-medium text-default-500 ">Location</span>
+        </Button>
       </NavbarContent>
     </HeroUINavbar>
   );
