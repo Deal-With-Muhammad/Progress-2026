@@ -44,20 +44,16 @@ export default function Navbar({
         className="hidden sm:flex basis-1/5 sm:basis-full"
         justify="end"
       >
-        <Button
-          onClick={onLocationClick}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm md:text-base"
-        >
-          <FaMapMarkerAlt className="w-4 h-4" />
-          <span className="hidden sm:inline">Change Location</span>
-          <span className="sm:hidden">Location</span>
-        </Button>
         <NavbarItem className="hidden sm:flex gap-2">
           <Link isExternal aria-label="Github" href={siteConfig.links.github}>
             <GithubIcon className="text-default-500" />
           </Link>
           <ThemeSwitch />
         </NavbarItem>
+        <Button onClick={onLocationClick} className="flex items-center gap-2">
+          <FaMapMarkerAlt className=" h-6 text-default-500" />
+          <span className="font-medium text-default-500 ">Location</span>
+        </Button>
       </NavbarContent>
 
       <NavbarContent className="sm:hidden basis-1 pl-4" justify="end">
@@ -65,7 +61,6 @@ export default function Navbar({
           <GithubIcon className="text-default-500" />
         </Link>
         <ThemeSwitch />
-        <NavbarMenuToggle />
       </NavbarContent>
     </HeroUINavbar>
   );

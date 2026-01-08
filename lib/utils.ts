@@ -1,101 +1,103 @@
-import { TIMEZONES } from './timezones';
+import { getTimezone, getCountry } from 'countries-and-timezones';
+import { countries } from 'countries-list';
 import type { LocationData, ProgressData } from '@/types';
 
+/**
+ * Detects the user's location based on their system timezone or IP fallback.
+ * No static list required!
+ */
 export async function detectUserLocation(): Promise<LocationData> {
-  // Try to get user's timezone
-  const userTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  
-  // Try to match exact timezone
-  const exactMatch = TIMEZONES.find(tz => tz.timezone === userTz);
-  if (exactMatch) {
-    return {
-      name: `${exactMatch.city}, ${exactMatch.country}`,
-      timezone: exactMatch.timezone,
-      countryCode: exactMatch.countryCode,
-      city: exactMatch.city,
-      country: exactMatch.country
-    };
-  }
+  let userTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  let countryCode = 'US'; // Default fallback
 
-  // Try IP-based geolocation as fallback
   try {
+    // 1. Try IP-based detection for more accuracy (city/country)
     const response = await fetch('https://ipapi.co/json/');
     const data = await response.json();
     
-    if (data.timezone) {
-      const match = TIMEZONES.find(tz => tz.timezone === data.timezone);
-      if (match) {
-        return {
-          name: `${match.city}, ${match.country}`,
-          timezone: match.timezone,
-          countryCode: match.countryCode,
-          city: match.city,
-          country: match.country
-        };
-      }
-    }
+    if (data.timezone) userTz = data.timezone;
+    if (data.country_code) countryCode = data.country_code;
 
-    // Fallback to country code match
-    if (data.country_code) {
-      const countryMatch = TIMEZONES.find(tz => tz.countryCode === data.country_code);
-      if (countryMatch) {
-        return {
-          name: `${countryMatch.city}, ${countryMatch.country}`,
-          timezone: countryMatch.timezone,
-          countryCode: countryMatch.countryCode,
-          city: countryMatch.city,
-          country: countryMatch.country
-        };
-      }
-    }
+    const countryInfo = countries[countryCode as keyof typeof countries];
+    
+    return {
+      name: `${data.city || 'Unknown City'}, ${countryInfo?.name || 'Unknown Country'}`,
+      timezone: userTz,
+      countryCode: countryCode,
+      city: data.city || 'Unknown City',
+      country: countryInfo?.name || 'Unknown Country'
+    };
   } catch (error) {
-    console.error('Geolocation detection failed:', error);
+    console.error('Geolocation detection failed, falling back to system timezone:', error);
   }
 
-  // Ultimate fallback to first timezone (New York)
-  const fallback = TIMEZONES[0];
+  // 2. Fallback to system timezone info if API fails
+  const tzInfo = getTimezone(userTz);
+  const countryId = tzInfo?.country || 'US';
+  const countryName = countries[countryId as keyof typeof countries]?.name || 'United States';
+  const city = userTz.split('/').pop()?.replace(/_/g, ' ') || 'Unknown City';
+
   return {
-    name: `${fallback.city}, ${fallback.country}`,
-    timezone: fallback.timezone,
-    countryCode: fallback.countryCode,
-    city: fallback.city,
-    country: fallback.country
+    name: `${city}, ${countryName}`,
+    timezone: userTz,
+    countryCode: countryId,
+    city: city,
+    country: countryName
   };
 }
 
+/**
+ * Calculates percentage of the current year (2026) completed
+ */
 export function calculateProgress(timezone: string): ProgressData {
-  const now = new Date(new Date().toLocaleString('en-US', { timeZone: timezone }));
-  const yearStart = new Date(new Date('2026-01-01T00:00:00').toLocaleString('en-US', { timeZone: timezone }));
-  const yearEnd = new Date(new Date('2026-12-31T23:59:59').toLocaleString('en-US', { timeZone: timezone }));
+  const targetYear = 2026;
+
+  // Get current time in the SPECIFIC timezone correctly
+  const now = new Date();
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: timezone,
+    year: 'numeric', month: 'numeric', day: 'numeric',
+    hour: 'numeric', minute: 'numeric', second: 'numeric',
+    hour12: false
+  });
+  
+  const parts = formatter.formatToParts(now);
+  const p: any = {};
+  parts.forEach(part => p[part.type] = part.value);
+
+  // This creates a Date object representing the time IN that city
+  const localNow = new Date(p.year, p.month - 1, p.day, p.hour, p.minute, p.second);
+  
+  const yearStart = new Date(targetYear, 0, 1, 0, 0, 0);
+  const yearEnd = new Date(targetYear, 11, 31, 23, 59, 59);
   
   const totalMs = yearEnd.getTime() - yearStart.getTime();
-  const elapsedMs = now.getTime() - yearStart.getTime();
+  const elapsedMs = localNow.getTime() - yearStart.getTime();
+  
   const progress = Math.max(0, Math.min(100, (elapsedMs / totalMs) * 100));
-  
-  const elapsed = Math.floor(elapsedMs / (1000 * 60 * 60 * 24));
-  const remaining = Math.ceil((yearEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-  
+
   return {
-    percentage: parseFloat(progress.toFixed(2)),
-    daysElapsed: Math.max(0, elapsed),
-    daysRemaining: Math.max(0, remaining),
+    percentage: parseFloat(progress.toFixed(4)),
+    daysElapsed: Math.floor(elapsedMs / (1000 * 60 * 60 * 24)),
+    daysRemaining: Math.ceil((yearEnd.getTime() - localNow.getTime()) / (1000 * 60 * 60 * 24)),
     currentDate: now.toLocaleString('en-US', {
       timeZone: timezone,
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+      hour: '2-digit', minute: '2-digit', second: '2-digit'
     })
   };
 }
 
+/**
+ * Converts ISO Country Code to Emoji Flag
+ */
 export function getFlagEmoji(countryCode: string): string {
-  const codePoints = countryCode
+  if (!countryCode || countryCode.length !== 2) return '🌐';
+  
+  return countryCode
     .toUpperCase()
     .split('')
-    .map(char => 127397 + char.charCodeAt(0));
-  return String.fromCodePoint(...codePoints);
+    .map(char => 127397 + char.charCodeAt(0))
+    .map(cp => String.fromCodePoint(cp))
+    .join('');
 }

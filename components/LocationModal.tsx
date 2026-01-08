@@ -9,97 +9,48 @@ import {
 import { Button } from "@heroui/button";
 import { Input } from "@heroui/input";
 import { SearchIcon } from "./icons";
+import { getAllTimezones } from "countries-and-timezones";
+import { countries } from "countries-list";
+import { LocationData } from "@/types"; // Ensure this matches your types file
 
-// All IANA timezones with their UTC offsets
-const ALL_TIMEZONES = Intl.supportedValuesOf("timeZone")
+// 1. Define an interface for our local timezone objects
+interface TimezoneOption {
+  countryName: any;
+  timezone: string;
+  city: string;
+  region: string;
+  offset: string;
+  countryCode: string;
+  displayName: string;
+}
+
+const ALL_TIMEZONES: TimezoneOption[] = Object.values(getAllTimezones())
   .map((tz) => {
-    const now = new Date();
-    const tzDate = new Date(now.toLocaleString("en-US", { timeZone: tz }));
-    const offset = (tzDate.getTime() - now.getTime()) / (1000 * 60 * 60);
-
-    // Parse timezone to get city and region
-    const parts = tz.split("/");
+    const parts = tz.name.split("/");
     const city = parts[parts.length - 1].replace(/_/g, " ");
     const region = parts[0];
 
+    // FIX 1 & 2: Get the actual country name for searching and the code for flags
+    const countryCode =
+      tz.countries && tz.countries.length > 0 ? tz.countries[0] : "UN";
+    const countryName =
+      countries[countryCode as keyof typeof countries]?.name || "";
+
     return {
-      timezone: tz,
+      timezone: tz.name,
       city,
       region,
-      offset,
-      displayName: `${city} (UTC${offset >= 0 ? "+" : ""}${offset})`,
+      countryName, // Added this so we can search by it
+      offset: tz.utcOffsetStr,
+      countryCode: countryCode,
+      displayName: `${city}, ${countryName} (${tz.utcOffsetStr})`,
     };
   })
-  .sort((a, b) => {
-    // Sort by region first, then by city
-    if (a.region !== b.region) return a.region.localeCompare(b.region);
-    return a.city.localeCompare(b.city);
-  });
+  .sort((a, b) => a.city.localeCompare(b.city));
 
-function getFlagEmoji(timezone) {
-  // Map of timezones to country codes
-  const tzToCountry = {
-    "America/New_York": "US",
-    "America/Los_Angeles": "US",
-    "America/Chicago": "US",
-    "America/Denver": "US",
-    "America/Toronto": "CA",
-    "America/Vancouver": "CA",
-    "America/Mexico_City": "MX",
-    "America/Sao_Paulo": "BR",
-    "America/Argentina/Buenos_Aires": "AR",
-    "America/Santiago": "CL",
-    "America/Lima": "PE",
-    "America/Bogota": "CO",
-    "Europe/London": "GB",
-    "Europe/Paris": "FR",
-    "Europe/Berlin": "DE",
-    "Europe/Madrid": "ES",
-    "Europe/Rome": "IT",
-    "Europe/Amsterdam": "NL",
-    "Europe/Brussels": "BE",
-    "Europe/Vienna": "AT",
-    "Europe/Stockholm": "SE",
-    "Europe/Oslo": "NO",
-    "Europe/Copenhagen": "DK",
-    "Europe/Helsinki": "FI",
-    "Europe/Warsaw": "PL",
-    "Europe/Prague": "CZ",
-    "Europe/Budapest": "HU",
-    "Europe/Athens": "GR",
-    "Europe/Lisbon": "PT",
-    "Europe/Dublin": "IE",
-    "Europe/Moscow": "RU",
-    "Europe/Istanbul": "TR",
-    "Asia/Tokyo": "JP",
-    "Asia/Seoul": "KR",
-    "Asia/Shanghai": "CN",
-    "Asia/Hong_Kong": "HK",
-    "Asia/Singapore": "SG",
-    "Asia/Bangkok": "TH",
-    "Asia/Kuala_Lumpur": "MY",
-    "Asia/Jakarta": "ID",
-    "Asia/Manila": "PH",
-    "Asia/Ho_Chi_Minh": "VN",
-    "Asia/Kolkata": "IN",
-    "Asia/Dubai": "AE",
-    "Asia/Jerusalem": "IL",
-    "Asia/Riyadh": "SA",
-    "Asia/Karachi": "PK",
-    "Asia/Dhaka": "BD",
-    "Australia/Sydney": "AU",
-    "Australia/Melbourne": "AU",
-    "Australia/Brisbane": "AU",
-    "Australia/Perth": "AU",
-    "Pacific/Auckland": "NZ",
-    "Africa/Cairo": "EG",
-    "Africa/Johannesburg": "ZA",
-    "Africa/Lagos": "NG",
-    "Africa/Nairobi": "KE",
-    "Africa/Casablanca": "MA",
-  };
-
-  const countryCode = tzToCountry[timezone] || "UN";
+// 2. Typed Flag Helper (added string type)
+function getFlagEmoji(countryCode: string) {
+  if (!countryCode || countryCode === "UN") return "🌐";
   const codePoints = countryCode
     .toUpperCase()
     .split("")
@@ -107,28 +58,39 @@ function getFlagEmoji(timezone) {
   return String.fromCodePoint(...codePoints);
 }
 
+// 3. Define Props Interface
+interface LocationModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSelectLocation: (location: LocationData) => void;
+  currentTimezone: string;
+}
+
 export default function LocationModal({
   isOpen,
   onClose,
   onSelectLocation,
   currentTimezone,
-}) {
+}: LocationModalProps) {
   const [searchQuery, setSearchQuery] = useState("");
 
   const filteredTimezones = ALL_TIMEZONES.filter(
     (tz) =>
       tz.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      tz.region.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      tz.countryName.toLowerCase().includes(searchQuery.toLowerCase()) || // Now searchable!
       tz.timezone.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleSelectLocation = (tz) => {
-    const locationData = {
-      name: `${tz.city}, ${tz.region}`,
+  const handleSelectLocation = (tz: TimezoneOption) => {
+    // We cast the string as a key of the countries object
+    const countryInfo = countries[tz.countryCode as keyof typeof countries];
+
+    const locationData: LocationData = {
+      name: `${tz.city}, ${countryInfo ? countryInfo.name : tz.region}`,
       timezone: tz.timezone,
-      countryCode: "UN",
+      countryCode: tz.countryCode,
       city: tz.city,
-      country: tz.region,
+      country: countryInfo ? countryInfo.name : tz.region,
     };
     onSelectLocation(locationData);
     onClose();
@@ -164,10 +126,6 @@ export default function LocationModal({
                   startContent={<SearchIcon className="text-default-400" />}
                   isClearable
                   onClear={() => setSearchQuery("")}
-                  classNames={{
-                    input: "text-base",
-                    inputWrapper: "h-12",
-                  }}
                 />
                 <p className="text-sm text-default-500 mt-2">
                   {filteredTimezones.length} timezones available
@@ -188,7 +146,7 @@ export default function LocationModal({
                   >
                     <div className="flex items-start gap-2 w-full">
                       <span className="text-2xl flex-shrink-0">
-                        {getFlagEmoji(tz.timezone)}
+                        {getFlagEmoji(tz.countryCode)}
                       </span>
                       <div className="min-w-0 flex-1 text-left">
                         <div className="font-semibold truncate text-sm">
@@ -198,20 +156,14 @@ export default function LocationModal({
                           {tz.region}
                         </div>
                         <div className="text-xs opacity-60 mt-0.5">
-                          UTC{tz.offset >= 0 ? "+" : ""}
-                          {tz.offset}
+                          UTC {tz.offset}{" "}
+                          {/* Fixed: Just display the string directly */}
                         </div>
                       </div>
                     </div>
                   </Button>
                 ))}
               </div>
-
-              {filteredTimezones.length === 0 && (
-                <div className="text-center py-8 text-default-400">
-                  No timezones found matching "{searchQuery}"
-                </div>
-              )}
             </ModalBody>
 
             <ModalFooter>
