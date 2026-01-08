@@ -33,7 +33,7 @@ export default function ProgressDisplay({
 
       <div className=" rounded-2xl shadow-xl p-6 md:p-8 mb-6">
         <div className="text-center mb-6">
-          <div className="text-5xl md:text-7xl font-bold text-green-600 mb-2">
+          <div className="text-5xl md:text-7xl font-bold text-primary mb-2">
             {percentage}%
           </div>
           <p className="text-default-500 text-lg md:text-xl">
@@ -43,7 +43,7 @@ export default function ProgressDisplay({
 
         <div className="relative h-8 bg-default-200 rounded-full overflow-hidden mb-6">
           <div
-            className="absolute top-0 left-0 h-full bg-green-600 transition-all duration-1000 ease-out"
+            className="absolute top-0 left-0 h-full bg-primary transition-all duration-1000 ease-out"
             style={{ width: `${percentage}%` }}
           />
         </div>
