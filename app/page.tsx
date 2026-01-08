@@ -67,7 +67,7 @@ export default function Home() {
       />
 
       <main
-        className="py-4 md:pt-16
+        className="py-16 md:pt-16
       "
       >
         <ProgressDisplay

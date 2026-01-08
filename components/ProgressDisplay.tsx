@@ -21,8 +21,10 @@ export default function ProgressDisplay({
     <div className="w-full max-w-4xl mx-auto px-4">
       <div className="text-center mb-8">
         <div className="flex items-center justify-center gap-3 mb-2">
-          {Flag && <Flag className="w-10 h-7 rounded shadow-md" />}
-          <h2 className="text-2xl md:text-3xl font-bold text-default-900">
+          {Flag && (
+            <Flag className="sm:w-10 sm:h-7 w-8 h-6 rounded shadow-md" />
+          )}
+          <h2 className="text-xl md:text-3xl font-bold text-default-900">
             {location.name}
           </h2>
         </div>
@@ -31,7 +33,7 @@ export default function ProgressDisplay({
 
       <div className=" rounded-2xl shadow-xl p-6 md:p-8 mb-6">
         <div className="text-center mb-6">
-          <div className="text-6xl md:text-7xl font-bold text-green-600 mb-2">
+          <div className="text-5xl md:text-7xl font-bold text-green-600 mb-2">
             {percentage}%
           </div>
           <p className="text-default-500 text-lg md:text-xl">
@@ -51,7 +53,7 @@ export default function ProgressDisplay({
             <div className="text-3xl md:text-4xl font-bold text-default-900">
               {daysElapsed}
             </div>
-            <div className="text-sm md:text-base text-default-600 mt-1">
+            <div className="text-xs md:text-base text-default-600 mt-1">
               Days Elapsed
             </div>
           </div>
@@ -59,7 +61,7 @@ export default function ProgressDisplay({
             <div className="text-3xl md:text-4xl font-bold text-default-900">
               {daysRemaining}
             </div>
-            <div className="text-sm md:text-base text-default-600 mt-1">
+            <div className="text-xs md:text-base text-default-600 mt-1">
               Days Remaining
             </div>
           </div>
