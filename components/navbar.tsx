@@ -14,7 +14,6 @@ import { Input } from "@heroui/input";
 import { link as linkStyles } from "@heroui/theme";
 import NextLink from "next/link";
 import clsx from "clsx";
-import { getFlagEmoji } from "@/lib/utils";
 import { FaMapMarkerAlt } from "react-icons/fa";
 
 import { siteConfig } from "@/config/site";

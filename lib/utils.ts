@@ -1,24 +1,22 @@
-import { getTimezone, getCountry } from 'countries-and-timezones';
-import { countries } from 'countries-list';
+import { getTimezone } from 'countries-and-timezones';
+import { countries as countriesList } from 'countries-list';
 import type { LocationData, ProgressData } from '@/types';
 
 /**
- * Detects the user's location based on their system timezone or IP fallback.
- * No static list required!
+ * Detects the user's location and correctly handles the country array in Timezone type.
  */
 export async function detectUserLocation(): Promise<LocationData> {
   let userTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  let countryCode = 'US'; // Default fallback
+  let countryCode = 'US';
 
   try {
-    // 1. Try IP-based detection for more accuracy (city/country)
     const response = await fetch('https://ipapi.co/json/');
     const data = await response.json();
     
     if (data.timezone) userTz = data.timezone;
     if (data.country_code) countryCode = data.country_code;
 
-    const countryInfo = countries[countryCode as keyof typeof countries];
+    const countryInfo = countriesList[countryCode as keyof typeof countriesList];
     
     return {
       name: `${data.city || 'Unknown City'}, ${countryInfo?.name || 'Unknown Country'}`,
@@ -28,13 +26,16 @@ export async function detectUserLocation(): Promise<LocationData> {
       country: countryInfo?.name || 'Unknown Country'
     };
   } catch (error) {
-    console.error('Geolocation detection failed, falling back to system timezone:', error);
+    console.error('Geolocation failed:', error);
   }
 
-  // 2. Fallback to system timezone info if API fails
+  // FIX: Access tzInfo.countries[0] instead of tzInfo.country
   const tzInfo = getTimezone(userTz);
-  const countryId = tzInfo?.country || 'US';
-  const countryName = countries[countryId as keyof typeof countries]?.name || 'United States';
+  const countryId = (tzInfo?.countries && tzInfo.countries.length > 0) 
+    ? tzInfo.countries[0] 
+    : 'US';
+    
+  const countryName = countriesList[countryId as keyof typeof countriesList]?.name || 'United States';
   const city = userTz.split('/').pop()?.replace(/_/g, ' ') || 'Unknown City';
 
   return {
@@ -47,13 +48,14 @@ export async function detectUserLocation(): Promise<LocationData> {
 }
 
 /**
- * Calculates percentage of the current year (2026) completed
+ * Calculates accurate progress for 2026.
+ * Fixes the "Karachi time" issue by using Intl to extract exact local parts.
  */
 export function calculateProgress(timezone: string): ProgressData {
   const targetYear = 2026;
-
-  // Get current time in the SPECIFIC timezone correctly
   const now = new Date();
+
+  // Extract precise local time parts for the target timezone
   const formatter = new Intl.DateTimeFormat('en-US', {
     timeZone: timezone,
     year: 'numeric', month: 'numeric', day: 'numeric',
@@ -65,8 +67,15 @@ export function calculateProgress(timezone: string): ProgressData {
   const p: any = {};
   parts.forEach(part => p[part.type] = part.value);
 
-  // This creates a Date object representing the time IN that city
-  const localNow = new Date(p.year, p.month - 1, p.day, p.hour, p.minute, p.second);
+  // Construct a date object that represents "Local Now"
+  const localNow = new Date(
+    parseInt(p.year), 
+    parseInt(p.month) - 1, 
+    parseInt(p.day), 
+    parseInt(p.hour), 
+    parseInt(p.minute), 
+    parseInt(p.second)
+  );
   
   const yearStart = new Date(targetYear, 0, 1, 0, 0, 0);
   const yearEnd = new Date(targetYear, 11, 31, 23, 59, 59);
@@ -86,18 +95,4 @@ export function calculateProgress(timezone: string): ProgressData {
       hour: '2-digit', minute: '2-digit', second: '2-digit'
     })
   };
-}
-
-/**
- * Converts ISO Country Code to Emoji Flag
- */
-export function getFlagEmoji(countryCode: string): string {
-  if (!countryCode || countryCode.length !== 2) return '🌐';
-  
-  return countryCode
-    .toUpperCase()
-    .split('')
-    .map(char => 127397 + char.charCodeAt(0))
-    .map(cp => String.fromCodePoint(cp))
-    .join('');
 }
