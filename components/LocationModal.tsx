@@ -26,27 +26,33 @@ interface TimezoneOption {
 }
 
 const ALL_TIMEZONES: TimezoneOption[] = Object.values(getAllTimezones())
+  // 1. FILTER: Only include real geographic locations (e.g., Africa/Abidjan)
+  .filter((tz) => !tz.name.startsWith("Etc/") && tz.name.includes("/"))
   .map((tz) => {
     const parts = tz.name.split("/");
+    // Get city (last part) and region (first part)
     const city = parts[parts.length - 1].replace(/_/g, " ");
     const region = parts[0];
 
-    // FIX 1 & 2: Get the actual country name for searching and the code for flags
+    // Access countries array safely
     const countryCode =
       tz.countries && tz.countries.length > 0 ? tz.countries[0] : "UN";
-    const countryName =
-      countries[countryCode as keyof typeof countries]?.name || "";
+
+    // Look up country name
+    const countryInfo = countries[countryCode as keyof typeof countries];
+    const countryName = countryInfo ? countryInfo.name : region;
 
     return {
       timezone: tz.name,
       city,
       region,
-      countryName, // Added this so we can search by it
+      countryName,
       offset: tz.utcOffsetStr,
       countryCode: countryCode,
       displayName: `${city}, ${countryName} (${tz.utcOffsetStr})`,
     };
   })
+  // Sort by city name
   .sort((a, b) => a.city.localeCompare(b.city));
 
 // 2. Typed Flag Helper (added string type)
@@ -144,6 +150,14 @@ export default function LocationModal({
                       key={tz.timezone}
                       size="lg"
                       onPress={() => handleSelectLocation(tz)}
+                      className={`h-auto py-3 px-4 justify-start transition-all ${
+                        currentTimezone === tz.timezone
+                          ? "bg-primary/20 border-2 border-primary shadow-md"
+                          : "bg-default-100 hover:bg-default-200"
+                      }`}
+                      variant={
+                        currentTimezone === tz.timezone ? "bordered" : "flat"
+                      }
                     >
                       <div className="flex items-center gap-3 w-full">
                         <div className="w-8 h-6 flex-shrink-0 overflow-hidden rounded-sm shadow-sm">
