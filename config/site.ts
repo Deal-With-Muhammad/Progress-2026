@@ -6,7 +6,7 @@ export const siteConfig = {
 
 
   links: {
-    github: "https://github.com/heroui-inc/heroui",
+    github: "https://github.com/Deal-With-Muhammad",
     sponsor: "https://patreon.com/jrgarciadev",
   },
 };
