@@ -71,24 +71,17 @@ export function getYearStats(
   year: number,
   timeZone = "UTC",
 ): YearStats {
-  const now = wallClockMs(date, timeZone);
-  const start = Date.UTC(year, 0, 1);
-  const end = Date.UTC(year + 1, 0, 1);
-  const daysInYear = Math.round((end - start) / DAY_MS);
-  const clamped = Math.min(Math.max(now, start), end);
-  const daysElapsed = Math.floor((clamped - start) / DAY_MS);
-  const status: YearStatus =
-    now < start ? "upcoming" : now >= end ? "complete" : "in-progress";
+  const range = getRangeStats(date, { from: year, to: year }, timeZone);
 
   return {
     year,
-    status,
+    status: range.status,
     isLeapYear: isLeapYear(year),
-    daysInYear,
-    percentage: ((clamped - start) / (end - start)) * 100,
-    daysElapsed,
-    daysRemaining: daysInYear - daysElapsed,
-    dayOfYear: status === "in-progress" ? daysElapsed + 1 : 0,
+    daysInYear: range.totalDays,
+    percentage: range.percentage,
+    daysElapsed: range.daysElapsed,
+    daysRemaining: range.daysRemaining,
+    dayOfYear: range.status === "in-progress" ? range.daysElapsed + 1 : 0,
   };
 }
 
@@ -101,4 +94,138 @@ export function isoWeeksInYear(year: number): number {
   return jan1 === thursday || (isLeapYear(year) && jan1 === wednesday)
     ? 53
     : 52;
+}
+
+/* ------------------------------------------------------------------------ */
+/* Ranges of years (e.g. 2026–2030, or 2010–2027)                           */
+/* ------------------------------------------------------------------------ */
+
+/** Earliest and latest years the picker offers. */
+export const MIN_YEAR = 1900;
+export const MAX_YEAR = 2100;
+
+/** Whole calendar years, `from` to `to` inclusive. A single year has from === to. */
+export interface YearRange {
+  from: number;
+  to: number;
+}
+
+export interface RangeStats extends YearRange {
+  status: YearStatus;
+  /** Number of calendar years in the range. */
+  years: number;
+  totalDays: number;
+  /** Share of the range that has passed, 0–100, unrounded. */
+  percentage: number;
+  /** Full days completed since 1 January of `from`. */
+  daysElapsed: number;
+  /** Days left until 1 January after `to`, counting today. */
+  daysRemaining: number;
+  /** Days until the range starts (only while upcoming). */
+  daysUntilStart: number;
+  /** Days since the range ended (only once complete). */
+  daysSinceEnd: number;
+  /** Where each year after the first begins, as a percentage of the range. */
+  yearMarks: { year: number; at: number }[];
+}
+
+export function clampYear(year: number): number {
+  return Math.min(MAX_YEAR, Math.max(MIN_YEAR, Math.trunc(year)));
+}
+
+/** Puts the years in order and inside the supported span. */
+export function normalizeRange({ from, to }: YearRange): YearRange {
+  const a = clampYear(from);
+  const b = clampYear(to);
+
+  return a <= b ? { from: a, to: b } : { from: b, to: a };
+}
+
+/** The calendar year it currently is in `timeZone`. */
+export function currentYear(date: Date, timeZone = "UTC"): number {
+  return new Date(wallClockMs(date, timeZone)).getUTCFullYear();
+}
+
+/** Progress through a range of whole years at `date`, measured in `timeZone`. */
+export function getRangeStats(
+  date: Date,
+  range: YearRange,
+  timeZone = "UTC",
+): RangeStats {
+  const { from, to } = normalizeRange(range);
+  const now = wallClockMs(date, timeZone);
+  const start = Date.UTC(from, 0, 1);
+  const end = Date.UTC(to + 1, 0, 1);
+  const totalDays = Math.round((end - start) / DAY_MS);
+  const clamped = Math.min(Math.max(now, start), end);
+  const daysElapsed = Math.floor((clamped - start) / DAY_MS);
+  const status: YearStatus =
+    now < start ? "upcoming" : now >= end ? "complete" : "in-progress";
+
+  const yearMarks = [];
+
+  for (let year = from + 1; year <= to; year++) {
+    yearMarks.push({
+      year,
+      at: ((Date.UTC(year, 0, 1) - start) / (end - start)) * 100,
+    });
+  }
+
+  return {
+    from,
+    to,
+    status,
+    years: to - from + 1,
+    totalDays,
+    percentage: ((clamped - start) / (end - start)) * 100,
+    daysElapsed,
+    daysRemaining: totalDays - daysElapsed,
+    daysUntilStart:
+      status === "upcoming" ? Math.ceil((start - now) / DAY_MS) : 0,
+    daysSinceEnd: status === "complete" ? Math.floor((now - end) / DAY_MS) : 0,
+    yearMarks,
+  };
+}
+
+/**
+ * Decimals that make the live percentage tick about once a second:
+ * a single year needs 6, longer ranges 7.
+ */
+export function liveDecimals(totalDays: number): number {
+  const secondsPerHundredth = (totalDays * 86400) / 100;
+
+  return Math.min(7, Math.max(4, Math.ceil(Math.log10(secondsPerHundredth))));
+}
+
+/** "2027" or "2026–2030". */
+export function rangeLabel({ from, to }: YearRange): string {
+  return from === to ? String(from) : `${from}–${to}`;
+}
+
+/** Reads ?year=2027 or ?from=2026&to=2030 from a query string. */
+export function rangeFromSearch(search: string): YearRange | null {
+  const params = new URLSearchParams(search);
+  const read = (key: string) => {
+    const value = params.get(key);
+
+    return value && /^\d{4}$/.test(value) ? Number(value) : null;
+  };
+  const year = read("year");
+
+  if (year) return normalizeRange({ from: year, to: year });
+  const from = read("from");
+  const to = read("to");
+
+  if (from || to) return normalizeRange({ from: from ?? to!, to: to ?? from! });
+
+  return null;
+}
+
+/** The query string for a range ("" for the current year, the default). */
+export function rangeToSearch(range: YearRange, thisYear: number): string {
+  if (range.from === range.to) {
+    return range.from === thisYear ? "" : `?year=${range.from}`;
+  }
+
+  return `?from=${range.from}&to=${range.to}`;
 }

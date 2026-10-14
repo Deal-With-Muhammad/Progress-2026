@@ -140,6 +140,10 @@ export function getYearContent(
       answer: `${year} has ${daysInYear} days, which is ${weeksAndDays(daysInYear)}. In the ISO 8601 week-numbering system used by many calendars, ${year} has ${isoWeeks} weeks${isoReason}.`,
     },
     {
+      question: "Can I see the progress of another year or several years?",
+      answer: `Yes. Pick any year from 1900 to 2100, or a range such as ${year}–${year + 4} or 2010–${year + 1}, with the quick buttons or the From and To menus. A range that hasn't started yet shows 0% and how many days until it begins, a finished one shows 100%, and the link in your address bar opens the same range for anyone you share it with.`,
+    },
+    {
       question: `Who made ${siteConfig.name}?`,
       answer: `${siteConfig.name} was designed and built by ${siteConfig.author.name}, a web and mobile app developer based in ${siteConfig.author.city}, ${siteConfig.author.country}. See more of his work at dealwithmuhammad.com.`,
       link: { text: "dealwithmuhammad.com", href: siteConfig.author.url },

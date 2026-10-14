@@ -6,8 +6,9 @@ No sign-up, no ads, free to use. The page also shows a server-rendered summary a
 
 ## What it shows
 
-- The percentage of 2026 that has passed, to four decimal places, updated every second
-- A progress bar for the year
+- The percentage of 2026 that has passed, updated every second
+- Any other year or range of years from 1900 to 2100 (for example 2027, 2026–2030 or 2010–2027), chosen with quick buttons (This year, Next year, Next 5 years, This decade, Last 10 years) or From/To menus. Future ranges show 0% and the days until they start; past ranges show 100%. Shareable links: ?year=2027 or ?from=2026&to=2030
+- A progress bar, with a line where each new year begins in a multi-year range
 - Days elapsed (full days completed since 1 January) and days remaining (counting today)
 - The visitor's location, flag, local date and time
 - A Location menu to switch to any city or IANA time zone

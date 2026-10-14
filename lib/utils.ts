@@ -1,8 +1,7 @@
 import { getTimezone } from 'countries-and-timezones';
 import { countries as countriesList } from 'countries-list';
 import type { LocationData, ProgressData } from '@/types';
-import { siteConfig } from '@/config/site';
-import { getYearStats } from '@/lib/year';
+import { getRangeStats, type YearRange } from '@/lib/year';
 
 /**
  * Detects the user's location and correctly handles the country array in Timezone type.
@@ -50,21 +49,18 @@ export async function detectUserLocation(): Promise<LocationData> {
 }
 
 /**
- * Calculates progress through the tracked year (siteConfig.year) in the given
- * time zone. Uses the wall-clock time in that zone, so the browser's own time
- * zone and daylight-saving changes don't skew the result.
+ * Live progress through a range of years in the given time zone. Uses the
+ * wall-clock time in that zone, so the browser's own time zone and
+ * daylight-saving changes don't skew the result.
  */
 export function calculateProgress(
   timezone: string,
-  year: number = siteConfig.year,
+  range: YearRange,
 ): ProgressData {
   const now = new Date();
-  const stats = getYearStats(now, year, timezone);
 
   return {
-    percentage: parseFloat(stats.percentage.toFixed(4)),
-    daysElapsed: stats.daysElapsed,
-    daysRemaining: stats.daysRemaining,
+    ...getRangeStats(now, range, timezone),
     currentDate: now.toLocaleString('en-US', {
       timeZone: timezone,
       weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',

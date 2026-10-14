@@ -1,3 +1,5 @@
+import type { RangeStats } from "@/lib/year";
+
 import { SVGProps } from "react";
 
 export type IconSvgProps = SVGProps<SVGSVGElement> & {
@@ -11,9 +13,5 @@ export interface LocationData {
   country: string;
 }
 
-export interface ProgressData {
-  percentage: number;
-  currentDate: string;
-  daysElapsed: number;
-  daysRemaining: number;
-}
+/** Live progress through the selected range, plus the local date and time. */
+export type ProgressData = RangeStats & { currentDate: string };
