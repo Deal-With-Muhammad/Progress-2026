@@ -1,6 +1,8 @@
 import { getTimezone } from 'countries-and-timezones';
 import { countries as countriesList } from 'countries-list';
 import type { LocationData, ProgressData } from '@/types';
+import { siteConfig } from '@/config/site';
+import { getYearStats } from '@/lib/year';
 
 /**
  * Detects the user's location and correctly handles the country array in Timezone type.
@@ -48,47 +50,21 @@ export async function detectUserLocation(): Promise<LocationData> {
 }
 
 /**
- * Calculates accurate progress for 2026.
- * Fixes the "Karachi time" issue by using Intl to extract exact local parts.
+ * Calculates progress through the tracked year (siteConfig.year) in the given
+ * time zone. Uses the wall-clock time in that zone, so the browser's own time
+ * zone and daylight-saving changes don't skew the result.
  */
-export function calculateProgress(timezone: string): ProgressData {
-  const targetYear = 2026;
+export function calculateProgress(
+  timezone: string,
+  year: number = siteConfig.year,
+): ProgressData {
   const now = new Date();
-
-  // Extract precise local time parts for the target timezone
-  const formatter = new Intl.DateTimeFormat('en-US', {
-    timeZone: timezone,
-    year: 'numeric', month: 'numeric', day: 'numeric',
-    hour: 'numeric', minute: 'numeric', second: 'numeric',
-    hour12: false
-  });
-  
-  const parts = formatter.formatToParts(now);
-  const p: any = {};
-  parts.forEach(part => p[part.type] = part.value);
-
-  // Construct a date object that represents "Local Now"
-  const localNow = new Date(
-    parseInt(p.year), 
-    parseInt(p.month) - 1, 
-    parseInt(p.day), 
-    parseInt(p.hour), 
-    parseInt(p.minute), 
-    parseInt(p.second)
-  );
-  
-  const yearStart = new Date(targetYear, 0, 1, 0, 0, 0);
-  const yearEnd = new Date(targetYear, 11, 31, 23, 59, 59);
-  
-  const totalMs = yearEnd.getTime() - yearStart.getTime();
-  const elapsedMs = localNow.getTime() - yearStart.getTime();
-  
-  const progress = Math.max(0, Math.min(100, (elapsedMs / totalMs) * 100));
+  const stats = getYearStats(now, year, timezone);
 
   return {
-    percentage: parseFloat(progress.toFixed(4)),
-    daysElapsed: Math.floor(elapsedMs / (1000 * 60 * 60 * 24)),
-    daysRemaining: Math.ceil((yearEnd.getTime() - localNow.getTime()) / (1000 * 60 * 60 * 24)),
+    percentage: parseFloat(stats.percentage.toFixed(4)),
+    daysElapsed: stats.daysElapsed,
+    daysRemaining: stats.daysRemaining,
     currentDate: now.toLocaleString('en-US', {
       timeZone: timezone,
       weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',

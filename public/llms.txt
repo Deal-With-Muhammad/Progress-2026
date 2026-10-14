@@ -1,0 +1,45 @@
+# Progress 2026
+
+> Progress 2026 (https://progress.dealwithmuhammad.com) is a free web app that shows, live, how much of the year 2026 has passed in the visitor's own time zone: a percentage updated every second, a progress bar, the days elapsed and the days left until 2027. It was designed and built by Muhammad Ahmad, a web and mobile app developer in Kuala Lumpur, Malaysia.
+
+No sign-up, no ads, free to use. The page also shows a server-rendered summary and FAQ (refreshed hourly and labelled with the current UTC date) for readers and crawlers that don't run JavaScript.
+
+## What it shows
+
+- The percentage of 2026 that has passed, to four decimal places, updated every second
+- A progress bar for the year
+- Days elapsed (full days completed since 1 January) and days remaining (counting today)
+- The visitor's location, flag, local date and time
+- A Location menu to switch to any city or IANA time zone
+- Light and dark themes
+
+## How the percentage is calculated
+
+- Percentage = (time since 00:00 on 1 January 2026, in the selected time zone) ÷ (length of 2026) × 100
+- 2026 is not a leap year, so the year is 365 days long (8,760 hours, 31,536,000 seconds); a leap year would use 366 days
+- It uses wall-clock time in the selected time zone, so at the same moment visitors in different time zones can see slightly different values
+- The time zone is detected automatically from the visitor's IP address, falling back to the browser's time zone, and can be changed by hand
+- Before 2026 begins the counter shows 0%; after 31 December 2026 it shows 100%
+- One day is about 0.274% of the year; one hour is about 0.0114%
+
+## Facts about 2026
+
+- 365 days; not a leap year (the next leap year is 2028)
+- Starts on Thursday 1 January 2026 and ends on Thursday 31 December 2026
+- 52 weeks and 1 day; 53 weeks in the ISO 8601 week-numbering system, because it starts on a Thursday
+- 1 January 2027 is a Friday
+
+## Author
+
+- Name: Muhammad Ahmad, web & mobile app developer in Kuala Lumpur, Malaysia
+- Portfolio: https://www.dealwithmuhammad.com
+- Case study: https://www.dealwithmuhammad.com/work/progress-2026
+- Email: me@dealwithmuhammad.com
+- WhatsApp: https://wa.me/601139865270
+- GitHub: https://github.com/Deal-With-Muhammad
+- LinkedIn: https://www.linkedin.com/in/muhammad-ahmad-7009b8248/
+
+## More tools by the same author
+
+- [DWM Downloader](https://downloader.dealwithmuhammad.com): download videos from YouTube, Instagram, TikTok, X and more
+- [DWM Compressor](https://compressor.dealwithmuhammad.com): compress PDFs, images and video in the browser; nothing is uploaded

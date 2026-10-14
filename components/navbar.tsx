@@ -30,7 +30,7 @@ import type { LocationData } from "@/types";
 
 interface NavbarProps {
   onLocationClick: () => void;
-  currentLocation: LocationData;
+  currentLocation: LocationData | null;
 }
 
 export default function Navbar({

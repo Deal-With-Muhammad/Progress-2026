@@ -1,90 +1,31 @@
-"use client";
+import type { Metadata } from "next";
 
-import { useState, useEffect } from "react";
-import ProgressDisplay from "@/components/ProgressDisplay";
-import LocationModal from "@/components/LocationModal";
-import { detectUserLocation, calculateProgress } from "@/lib/utils";
-import type { LocationData, ProgressData } from "@/types";
-import Navbar from "@/components/navbar";
+import YearProgress from "@/components/year-progress";
+import YearFacts from "@/components/year-facts";
+import { getYearContent } from "@/lib/year-content";
+import { buildJsonLd, serializeJsonLd } from "@/lib/structured-data";
+
+// The live counter runs in the browser; the facts and FAQ below it are
+// rendered on the server and refreshed hourly so crawlers see real numbers.
+export const revalidate = 3600;
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 export default function Home() {
-  const [currentLocation, setCurrentLocation] = useState<LocationData | null>(
-    null
-  );
-  const [progressData, setProgressData] = useState<ProgressData>({
-    percentage: 0,
-    currentDate: "",
-    daysElapsed: 0,
-    daysRemaining: 0,
-  });
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isDetecting, setIsDetecting] = useState(true);
-
-  useEffect(() => {
-    const initializeLocation = async () => {
-      const location = await detectUserLocation();
-      setCurrentLocation(location);
-      setIsDetecting(false);
-    };
-
-    initializeLocation();
-  }, []);
-
-  useEffect(() => {
-    if (!currentLocation) return;
-
-    const updateProgress = () => {
-      const progress = calculateProgress(currentLocation.timezone);
-      setProgressData(progress);
-    };
-
-    updateProgress();
-    const interval = setInterval(updateProgress, 1000);
-
-    return () => clearInterval(interval);
-  }, [currentLocation]);
-
-  const handleLocationSelect = (location: LocationData) => {
-    setCurrentLocation(location);
-  };
-
-  if (isDetecting || !currentLocation) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Detecting your location...</p>
-        </div>
-      </div>
-    );
-  }
+  const content = getYearContent(new Date());
 
   return (
-    <div className="min-h-screen">
-      <Navbar
-        onLocationClick={() => setIsModalOpen(true)}
-        currentLocation={currentLocation}
+    <>
+      <script
+        dangerouslySetInnerHTML={{
+          __html: serializeJsonLd(buildJsonLd(content.faqs)),
+        }}
+        type="application/ld+json"
       />
-
-      <main
-        className="py-16 md:pt-16
-      "
-      >
-        <ProgressDisplay
-          percentage={progressData.percentage}
-          currentDate={progressData.currentDate}
-          location={currentLocation}
-          daysElapsed={progressData.daysElapsed}
-          daysRemaining={progressData.daysRemaining}
-        />
-      </main>
-
-      <LocationModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSelectLocation={handleLocationSelect}
-        currentTimezone={currentLocation.timezone}
-      />
-    </div>
+      <YearProgress />
+      <YearFacts content={content} />
+    </>
   );
 }

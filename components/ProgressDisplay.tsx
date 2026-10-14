@@ -6,6 +6,7 @@ interface ProgressDisplayProps {
   location: LocationData;
   daysElapsed: number;
   daysRemaining: number;
+  year: number;
 }
 
 export default function ProgressDisplay({
@@ -14,6 +15,7 @@ export default function ProgressDisplay({
   location,
   daysElapsed,
   daysRemaining,
+  year,
 }: ProgressDisplayProps) {
   const Flag = Flags[location.countryCode as keyof typeof Flags];
   return (
@@ -21,7 +23,11 @@ export default function ProgressDisplay({
       <div className="text-center mb-8">
         <div className="flex items-center justify-center gap-3 mb-2">
           {Flag && (
-            <Flag className="sm:w-10 sm:h-7 w-8 h-6 rounded shadow-md" />
+            <Flag
+              className="sm:w-10 sm:h-7 w-8 h-6 rounded shadow-md"
+              role="img"
+              title={`Flag of ${location.country}`}
+            />
           )}
           <h2 className="text-xl md:text-3xl font-bold text-default-900">
             {location.name}
@@ -36,7 +42,7 @@ export default function ProgressDisplay({
             {percentage}%
           </div>
           <p className="text-default-500 text-lg md:text-xl">
-            of 2026 completed
+            of {year} completed
           </p>
         </div>
 
