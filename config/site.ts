@@ -51,5 +51,9 @@ export const siteConfig = {
     stats: "https://www.dealwithmuhammad.com/stats/progress",
     downloader: "https://downloader.dealwithmuhammad.com",
     compressor: "https://compressor.dealwithmuhammad.com",
+    qr: "https://qr.dealwithmuhammad.com",
+    bgremove: "https://bgremove.dealwithmuhammad.com",
+    ip: "https://ip.dealwithmuhammad.com",
+    emailcheck: "https://emailcheck.dealwithmuhammad.com",
   },
 };

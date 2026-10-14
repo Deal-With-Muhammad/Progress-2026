@@ -130,6 +130,42 @@ export default function RootLayout({
                   </Link>
                   <Link
                     className={footerLinkClass}
+                    href={siteConfig.links.qr}
+                    rel="noopener"
+                    target="_blank"
+                    title="DWM QR: free QR code generator with logos and expiry"
+                  >
+                    DWM QR
+                  </Link>
+                  <Link
+                    className={footerLinkClass}
+                    href={siteConfig.links.bgremove}
+                    rel="noopener"
+                    target="_blank"
+                    title="DWM BG Remover: remove image backgrounds with AI"
+                  >
+                    DWM BG Remover
+                  </Link>
+                  <Link
+                    className={footerLinkClass}
+                    href={siteConfig.links.ip}
+                    rel="noopener"
+                    target="_blank"
+                    title="DWM IP: what is my IP address"
+                  >
+                    DWM IP
+                  </Link>
+                  <Link
+                    className={footerLinkClass}
+                    href={siteConfig.links.emailcheck}
+                    rel="noopener"
+                    target="_blank"
+                    title="DWM Email Checker: check if an email address exists"
+                  >
+                    DWM Email Checker
+                  </Link>
+                  <Link
+                    className={footerLinkClass}
                     href={siteConfig.links.github}
                     rel="noopener"
                     target="_blank"
@@ -145,6 +181,11 @@ export default function RootLayout({
         <Script
           data-site="progress"
           src="https://www.dealwithmuhammad.com/dwm.js"
+          strategy="afterInteractive"
+        />
+        {/* The 9-dot app launcher shared by every DWM tool. */}
+        <Script
+          src="https://www.dealwithmuhammad.com/dwm-apps.js"
           strategy="afterInteractive"
         />
       </body>

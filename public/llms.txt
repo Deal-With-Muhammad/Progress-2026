@@ -44,3 +44,7 @@ No sign-up, no ads, free to use. The page also shows a server-rendered summary a
 
 - [DWM Downloader](https://downloader.dealwithmuhammad.com): download videos from YouTube, Instagram, TikTok, X and more
 - [DWM Compressor](https://compressor.dealwithmuhammad.com): compress PDFs, images and video in the browser; nothing is uploaded
+- [DWM QR](https://qr.dealwithmuhammad.com): free QR code generator with logos, colours, poster and flyer templates, and optional expiry
+- [DWM BG Remover](https://bgremove.dealwithmuhammad.com): remove image backgrounds with AI that runs in the browser
+- [DWM IP](https://ip.dealwithmuhammad.com): what is my IP address — public IPv4/IPv6, location, ISP and IP/domain lookup
+- [DWM Email Checker](https://emailcheck.dealwithmuhammad.com): check whether an email address exists and can receive mail

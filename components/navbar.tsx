@@ -53,6 +53,8 @@ export default function Navbar({
           <FaMapMarkerAlt className=" h-6 text-default-500" />
           <span className="font-medium text-default-500 ">Location</span>
         </Button>
+        {/* Google-style menu of every DWM tool, from dealwithmuhammad.com/dwm-apps.js */}
+        <dwm-apps current="progress" />
       </NavbarContent>
 
       <NavbarContent className="sm:hidden basis-1 pl-4" justify="end">
@@ -64,6 +66,7 @@ export default function Navbar({
           <FaMapMarkerAlt className=" h-6 text-default-500" />
           <span className="font-medium text-default-500 ">Location</span>
         </Button>
+        <dwm-apps current="progress" />
       </NavbarContent>
     </HeroUINavbar>
   );

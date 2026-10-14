@@ -10,3 +10,10 @@
     --font-sans: "font", sans-serif;
     --font-mono: "monospace", monospace;
 }
+/* Reserve the DWM app launcher's space before its script loads, so nothing shifts. */
+dwm-apps {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  flex: none;
+}
