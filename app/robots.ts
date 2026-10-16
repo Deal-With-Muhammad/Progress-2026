@@ -4,6 +4,7 @@ import { siteConfig } from "@/config/site";
 
 // Search engines and AI assistants are all welcome to crawl and cite the site.
 const aiAndSearchCrawlers = [
+  "Googlebot",
   "GPTBot",
   "OAI-SearchBot",
   "ChatGPT-User",

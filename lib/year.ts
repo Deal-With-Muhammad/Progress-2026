@@ -229,3 +229,93 @@ export function rangeToSearch(range: YearRange, thisYear: number): string {
 
   return `?from=${range.from}&to=${range.to}`;
 }
+
+/* ------------------------------------------------------------------------ */
+/* Weeks, weekdays and the New Year countdown                               */
+/* ------------------------------------------------------------------------ */
+
+/** Midnight (as a UTC timestamp) of the calendar day that `wallMs` falls on. */
+export function startOfDay(wallMs: number): number {
+  return Math.floor(wallMs / DAY_MS) * DAY_MS;
+}
+
+export interface IsoWeek {
+  /** ISO week-numbering year (can differ from the calendar year near 1 January). */
+  year: number;
+  /** ISO 8601 week number, 1–53. */
+  week: number;
+  /** Monday the week starts on, as a UTC timestamp. */
+  monday: number;
+  /** Sunday the week ends on, as a UTC timestamp. */
+  sunday: number;
+}
+
+/** The ISO 8601 week (Monday to Sunday) that the day at `dayMs` falls in. */
+export function isoWeekOf(dayMs: number): IsoWeek {
+  const day = startOfDay(dayMs);
+  const weekday = (new Date(day).getUTCDay() + 6) % 7; // 0 = Monday
+  const monday = day - weekday * DAY_MS;
+  // The week belongs to the year its Thursday falls in.
+  const thursday = monday + 3 * DAY_MS;
+  const year = new Date(thursday).getUTCFullYear();
+  const week = Math.floor((thursday - Date.UTC(year, 0, 1)) / DAY_MS / 7) + 1;
+
+  return { year, week, monday, sunday: monday + 6 * DAY_MS };
+}
+
+/** Every ISO week of an ISO week-numbering year, in order. */
+export function isoWeeksOf(year: number): IsoWeek[] {
+  // 4 January is always in week 1.
+  const first = isoWeekOf(Date.UTC(year, 0, 4));
+
+  return Array.from({ length: isoWeeksInYear(year) }, (_, i) =>
+    isoWeekOf(first.monday + i * 7 * DAY_MS),
+  );
+}
+
+/** Monday-to-Friday days from `fromDay` up to (not including) `toDay`. */
+export function weekdaysBetween(fromDay: number, toDay: number): number {
+  const days = Math.max(0, Math.round((toDay - fromDay) / DAY_MS));
+  const firstWeekday = (new Date(fromDay).getUTCDay() + 6) % 7; // 0 = Monday
+  let count = Math.floor(days / 7) * 5;
+
+  for (let i = 0; i < days % 7; i++) {
+    if ((firstWeekday + i) % 7 < 5) count++;
+  }
+
+  return count;
+}
+
+export interface Countdown {
+  days: number;
+  hours: number;
+  minutes: number;
+  seconds: number;
+  /** Whole seconds left. */
+  totalSeconds: number;
+}
+
+/** Time left from wall-clock `fromMs` until midnight on 1 January of `year`. */
+export function countdownTo(year: number, fromMs: number): Countdown {
+  const totalSeconds = Math.max(
+    0,
+    Math.ceil((Date.UTC(year, 0, 1) - fromMs) / 1000),
+  );
+
+  return {
+    days: Math.floor(totalSeconds / 86400),
+    hours: Math.floor((totalSeconds % 86400) / 3600),
+    minutes: Math.floor((totalSeconds % 3600) / 60),
+    seconds: totalSeconds % 60,
+    totalSeconds,
+  };
+}
+
+/** US-style week number (Sunday start, week 1 contains 1 January), like Excel's WEEKNUM. */
+export function usWeekNumber(dayMs: number): number {
+  const day = startOfDay(dayMs);
+  const jan1 = Date.UTC(new Date(day).getUTCFullYear(), 0, 1);
+  const offset = new Date(jan1).getUTCDay(); // 0 = Sunday
+
+  return Math.floor((Math.round((day - jan1) / DAY_MS) + offset) / 7) + 1;
+}

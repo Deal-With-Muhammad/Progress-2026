@@ -1,9 +1,9 @@
 import type { LocationData, ProgressData } from "@/types";
 
-import * as Flags from "country-flag-icons/react/3x2";
 import clsx from "clsx";
 
-import { liveDecimals, rangeLabel } from "@/lib/year";
+import { Flag } from "@/components/flag";
+import { isoWeekOf, liveDecimals, rangeLabel } from "@/lib/year";
 
 interface ProgressDisplayProps {
   progress: ProgressData;
@@ -13,7 +13,7 @@ interface ProgressDisplayProps {
 const number = new Intl.NumberFormat("en");
 const days = (n: number) => `${number.format(n)} ${n === 1 ? "day" : "days"}`;
 
-function Tile({ value, label }: { value: string; label: string }) {
+export function Tile({ value, label }: { value: string; label: string }) {
   return (
     <div className="rounded-xl bg-default-50 p-4 text-center">
       <div className="text-3xl font-bold tabular-nums text-default-900 md:text-4xl">
@@ -24,11 +24,35 @@ function Tile({ value, label }: { value: string; label: string }) {
   );
 }
 
+/** Where the numbers are measured: flag, city and the local date and time. */
+export function LocationHeader({
+  location,
+  currentDate,
+}: {
+  location: LocationData;
+  currentDate: string;
+}) {
+  return (
+    <div className="mb-8 text-center">
+      <div className="mb-2 flex items-center justify-center gap-3">
+        <Flag
+          className="h-6 w-8 rounded shadow-md sm:h-7 sm:w-10"
+          code={location.countryCode}
+          title={`Flag of ${location.country}`}
+        />
+        <h2 className="text-xl font-bold text-default-900 md:text-3xl">
+          {location.name}
+        </h2>
+      </div>
+      <p className="text-sm text-default-600 md:text-base">{currentDate}</p>
+    </div>
+  );
+}
+
 export default function ProgressDisplay({
   progress,
   location,
 }: ProgressDisplayProps) {
-  const Flag = Flags[location.countryCode as keyof typeof Flags];
   const label = rangeLabel(progress);
   const single = progress.years === 1;
   const { status } = progress;
@@ -46,7 +70,7 @@ export default function ProgressDisplay({
       : status === "complete"
         ? `Ended ${progress.daysSinceEnd === 0 ? "today" : `${days(progress.daysSinceEnd)} ago`}`
         : single
-          ? dayOf
+          ? `${dayOf} · Week ${isoWeekOf(progress.wallMs).week}`
           : `${dayOf} · ${progress.years} years`;
 
   const tiles =
@@ -100,23 +124,7 @@ export default function ProgressDisplay({
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4">
-      <div className="mb-8 text-center">
-        <div className="mb-2 flex items-center justify-center gap-3">
-          {Flag && (
-            <Flag
-              className="h-6 w-8 rounded shadow-md sm:h-7 sm:w-10"
-              role="img"
-              title={`Flag of ${location.country}`}
-            />
-          )}
-          <h2 className="text-xl font-bold text-default-900 md:text-3xl">
-            {location.name}
-          </h2>
-        </div>
-        <p className="text-sm text-default-600 md:text-base">
-          {progress.currentDate}
-        </p>
-      </div>
+      <LocationHeader currentDate={progress.currentDate} location={location} />
 
       <div className="mb-6 rounded-2xl p-6 shadow-xl md:p-8">
         <div className="mb-6 text-center">

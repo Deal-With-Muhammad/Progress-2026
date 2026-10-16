@@ -12,7 +12,7 @@ import { SearchIcon } from "./icons";
 import { getAllTimezones } from "countries-and-timezones";
 import { countries } from "countries-list";
 import { LocationData } from "@/types"; // Ensure this matches your types file
-import * as Flags from "country-flag-icons/react/3x2";
+import { Flag } from "./flag";
 
 // 1. Define an interface for our local timezone objects
 interface TimezoneOption {
@@ -141,10 +141,6 @@ export default function LocationModal({
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {filteredTimezones.map((tz) => {
-                  // 4. DYNAMIC FLAG COMPONENT
-                  const FlagComponent =
-                    Flags[tz.countryCode as keyof typeof Flags];
-
                   return (
                     <Button
                       key={tz.timezone}
@@ -161,16 +157,11 @@ export default function LocationModal({
                     >
                       <div className="flex items-center gap-3 w-full">
                         <div className="w-8 h-6 flex-shrink-0 overflow-hidden rounded-sm shadow-sm">
-                          {FlagComponent ? (
-                            <FlagComponent
-                              title={tz.countryName}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="bg-default-200 w-full h-full flex items-center justify-center text-[10px]">
-                              {tz.countryCode}
-                            </div>
-                          )}
+                          <Flag
+                            className="w-full h-full"
+                            code={tz.countryCode}
+                            title={tz.countryName}
+                          />
                         </div>
                         <div className="min-w-0 flex-1 text-left">
                           <div className="font-semibold truncate text-sm">

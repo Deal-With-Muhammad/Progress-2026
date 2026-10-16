@@ -1,12 +1,17 @@
 import type { MetadataRoute } from "next";
 
-import { siteConfig } from "@/config/site";
+import { siteCopy } from "@/config/site";
+
+// The name carries the year, so regenerate it daily.
+export const revalidate = 86400;
 
 export default function manifest(): MetadataRoute.Manifest {
+  const copy = siteCopy();
+
   return {
-    name: `${siteConfig.name}: Year Progress Bar`,
-    short_name: siteConfig.name,
-    description: siteConfig.description,
+    name: `${copy.name}: Year Progress Bar`,
+    short_name: copy.name,
+    description: copy.description,
     start_url: "/",
     display: "standalone",
     background_color: "#000000",

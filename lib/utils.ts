@@ -1,50 +1,61 @@
-import { getTimezone } from 'countries-and-timezones';
-import { countries as countriesList } from 'countries-list';
-import type { LocationData, ProgressData } from '@/types';
-import { getRangeStats, type YearRange } from '@/lib/year';
+import type { LocationData, ProgressData } from "@/types";
+
+import { getRangeStats, wallClockMs, type YearRange } from "@/lib/year";
+
+/** English country name for an ISO 3166 code, from the browser's own data. */
+export function countryName(code: string): string | undefined {
+  try {
+    const name = new Intl.DisplayNames(["en"], { type: "region" }).of(code);
+
+    return name && name !== code ? name : undefined;
+  } catch {
+    return undefined;
+  }
+}
 
 /**
- * Detects the user's location and correctly handles the country array in Timezone type.
+ * Detects the visitor's city and time zone from their IP address, falling back
+ * to the browser's time zone (and the country that time zone belongs to).
  */
 export async function detectUserLocation(): Promise<LocationData> {
   let userTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  let countryCode = 'US';
 
   try {
-    const response = await fetch('https://ipapi.co/json/');
+    const response = await fetch("https://ipapi.co/json/");
     const data = await response.json();
-    
-    if (data.timezone) userTz = data.timezone;
-    if (data.country_code) countryCode = data.country_code;
 
-    const countryInfo = countriesList[countryCode as keyof typeof countriesList];
-    
+    if (data.timezone) userTz = data.timezone;
+    const countryCode: string = data.country_code || "US";
+    const country = countryName(countryCode) || "Unknown Country";
+
     return {
-      name: `${data.city || 'Unknown City'}, ${countryInfo?.name || 'Unknown Country'}`,
+      name: `${data.city || "Unknown City"}, ${country}`,
       timezone: userTz,
-      countryCode: countryCode,
-      city: data.city || 'Unknown City',
-      country: countryInfo?.name || 'Unknown Country'
+      countryCode,
+      city: data.city || "Unknown City",
+      country,
     };
   } catch (error) {
-    console.error('Geolocation failed:', error);
+    // eslint-disable-next-line no-console
+    console.error("Geolocation failed:", error);
   }
 
-  // FIX: Access tzInfo.countries[0] instead of tzInfo.country
+  // The time zone database is only needed for this fallback, so load it lazily.
+  const { getTimezone } = await import("countries-and-timezones");
   const tzInfo = getTimezone(userTz);
-  const countryId = (tzInfo?.countries && tzInfo.countries.length > 0) 
-    ? tzInfo.countries[0] 
-    : 'US';
-    
-  const countryName = countriesList[countryId as keyof typeof countriesList]?.name || 'United States';
-  const city = userTz.split('/').pop()?.replace(/_/g, ' ') || 'Unknown City';
+  const countryId =
+    tzInfo?.countries && tzInfo.countries.length > 0
+      ? tzInfo.countries[0]
+      : "US";
+  const country = countryName(countryId) || "United States";
+  const city = userTz.split("/").pop()?.replace(/_/g, " ") || "Unknown City";
 
   return {
-    name: `${city}, ${countryName}`,
+    name: `${city}, ${country}`,
     timezone: userTz,
     countryCode: countryId,
-    city: city,
-    country: countryName
+    city,
+    country,
   };
 }
 
@@ -61,10 +72,16 @@ export function calculateProgress(
 
   return {
     ...getRangeStats(now, range, timezone),
-    currentDate: now.toLocaleString('en-US', {
+    wallMs: wallClockMs(now, timezone),
+    currentDate: now.toLocaleString("en-US", {
       timeZone: timezone,
-      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
-      hour: '2-digit', minute: '2-digit', second: '2-digit'
-    })
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    }),
   };
 }

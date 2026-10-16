@@ -1,11 +1,16 @@
 import { ImageResponse } from "next/og";
 
-import { siteConfig } from "@/config/site";
-import { getYearStats } from "@/lib/year";
+import { siteConfig, siteCopy, siteYear } from "@/config/site";
+import { getYearStats, isoWeekOf, isoWeeksInYear } from "@/lib/year";
 import { formatPercent } from "@/lib/year-content";
 
 export const ogSize = { width: 1200, height: 630 };
-export const ogAlt = `${siteConfig.name}: a progress bar showing how much of ${siteConfig.year} has passed, by Muhammad Ahmad`;
+
+/** Alt text for a page's share image. */
+export const ogAlt = (what: string) =>
+  `${what}, from the ${siteCopy().name} year progress bar by Muhammad Ahmad`;
+
+export type OgVariant = "progress" | "days-left" | "new-year" | "week";
 
 // HeroUI dark theme colours, to match the site's default look.
 const colors = {
@@ -38,17 +43,11 @@ async function loadInter(weight: 400 | 700, text: string) {
   }
 }
 
-/** Branded share image with the share of the year passed at request time (UTC). */
-export async function renderOgImage() {
+/** Branded share image with live numbers at request time (UTC). */
+export async function renderOgImage(variant: OgVariant = "progress") {
   const now = new Date();
-  const { year } = siteConfig;
+  const year = siteYear(now);
   const stats = getYearStats(now, year, "UTC");
-  const percent =
-    stats.status === "complete"
-      ? "100%"
-      : stats.status === "upcoming"
-        ? "0%"
-        : formatPercent(stats.percentage);
   const barWidth = Math.min(100, Math.max(0, stats.percentage));
   const asOf = new Intl.DateTimeFormat("en-GB", {
     day: "numeric",
@@ -56,20 +55,40 @@ export async function renderOgImage() {
     year: "numeric",
     timeZone: "UTC",
   }).format(now);
+  const daysLeft = `${stats.daysRemaining} ${stats.daysRemaining === 1 ? "day" : "days"}`;
+  const week = isoWeekOf(now.getTime());
 
-  const detail =
-    stats.status === "in-progress"
-      ? `Day ${stats.dayOfYear} of ${stats.daysInYear} · ${stats.daysRemaining} ${stats.daysRemaining === 1 ? "day" : "days"} left`
-      : stats.status === "upcoming"
-        ? `${year} starts on 1 January`
-        : `${year} is complete`;
+  const { title, percent, caption, detail } = {
+    progress: {
+      title: `How much of ${year} has passed?`,
+      percent: formatPercent(stats.percentage),
+      caption: `of ${year} completed`,
+      detail: `Day ${stats.dayOfYear} of ${stats.daysInYear} · ${daysLeft} left`,
+    },
+    "days-left": {
+      title: `How many days are left in ${year}?`,
+      percent: String(stats.daysRemaining),
+      caption: stats.daysRemaining === 1 ? "day left" : "days left",
+      detail: `${formatPercent(100 - stats.percentage)} of ${year} to go`,
+    },
+    "new-year": {
+      title: `How many days until New Year ${year + 1}?`,
+      percent: String(stats.daysRemaining),
+      caption: `${stats.daysRemaining === 1 ? "day" : "days"} to go`,
+      detail: `${formatPercent(stats.percentage)} of ${year} completed`,
+    },
+    week: {
+      title: "What week is it?",
+      percent: `Week ${week.week}`,
+      caption: `of ${isoWeeksInYear(week.year)} in ${week.year}`,
+      detail: `Day ${stats.dayOfYear} of ${stats.daysInYear} · ISO 8601 weeks`,
+    },
+  }[variant];
 
-  const title = `How much of ${year} has passed?`;
-  const brand = siteConfig.name.toUpperCase();
+  const brand = siteCopy(year).name.toUpperCase();
   const host = new URL(siteConfig.url).host;
   const byline = "by Muhammad Ahmad · dealwithmuhammad.com";
   const asOfText = `as of ${asOf}, UTC`;
-  const caption = `of ${year} completed`;
 
   const allText = [
     title,

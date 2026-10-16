@@ -6,52 +6,65 @@ import clsx from "clsx";
 
 import { Providers } from "./providers";
 
-import { siteConfig } from "@/config/site";
+import {
+  CONTENT_UPDATED,
+  CONTENT_UPDATED_LABEL,
+  siteConfig,
+  siteCopy,
+  siteYear,
+  yearPages,
+} from "@/config/site";
 import { fontSans } from "@/config/fonts";
 import { VisitorCounter } from "@/components/visitor-counter";
 
-export const metadata: Metadata = {
-  metadataBase: new URL(siteConfig.url),
-  title: {
-    default: siteConfig.title,
-    template: `%s · ${siteConfig.name}`,
-  },
-  description: siteConfig.description,
-  applicationName: siteConfig.name,
-  keywords: siteConfig.keywords,
-  authors: [{ name: siteConfig.author.name, url: siteConfig.author.url }],
-  creator: siteConfig.author.name,
-  publisher: siteConfig.author.name,
-  category: "utilities",
-  robots: {
-    index: true,
-    follow: true,
-    "max-image-preview": "large",
-    googleBot: {
+// Computed per render (the pages revalidate hourly), so the year in the brand
+// and titles rolls over on 1 January without a redeploy.
+export function generateMetadata(): Metadata {
+  const copy = siteCopy(siteYear());
+
+  return {
+    metadataBase: new URL(siteConfig.url),
+    title: {
+      default: copy.title,
+      template: `%s · ${copy.name}`,
+    },
+    description: copy.description,
+    applicationName: copy.name,
+    keywords: copy.keywords,
+    authors: [{ name: siteConfig.author.name, url: siteConfig.author.url }],
+    creator: siteConfig.author.name,
+    publisher: siteConfig.author.name,
+    category: "utilities",
+    robots: {
       index: true,
       follow: true,
       "max-image-preview": "large",
-      "max-snippet": -1,
-      "max-video-preview": -1,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+        "max-video-preview": -1,
+      },
     },
-  },
-  openGraph: {
-    type: "website",
-    url: "/",
-    siteName: siteConfig.name,
-    title: siteConfig.title,
-    description: siteConfig.description,
-    locale: "en_US",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: siteConfig.title,
-    description: siteConfig.description,
-  },
-  icons: {
-    icon: "/favicon.ico",
-  },
-};
+    openGraph: {
+      type: "website",
+      url: "/",
+      siteName: copy.name,
+      title: copy.title,
+      description: copy.description,
+      locale: "en_US",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: copy.title,
+      description: copy.description,
+    },
+    icons: {
+      icon: "/favicon.ico",
+    },
+  };
+}
 
 export const viewport: Viewport = {
   themeColor: [
@@ -83,7 +96,49 @@ export default function RootLayout({
               {children}
             </main>
             <footer className="w-full border-t border-default-100 px-6 py-8">
-              <div className="mx-auto flex max-w-4xl flex-col items-center gap-3 text-center">
+              <div className="mx-auto flex max-w-4xl flex-col items-center gap-4 text-center">
+                <nav
+                  aria-label="Year tools on this site"
+                  className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1"
+                >
+                  <Link className={footerLinkClass} href="/">
+                    Year progress bar
+                  </Link>
+                  {yearPages.map((page) => (
+                    <Link
+                      key={page.path}
+                      className={footerLinkClass}
+                      href={page.path}
+                    >
+                      {page.label}
+                    </Link>
+                  ))}
+                </nav>
+                <nav
+                  aria-labelledby="more-tools"
+                  className="flex flex-col items-center gap-1"
+                >
+                  <h2
+                    className="text-xs font-semibold uppercase tracking-[0.2em] text-default-400"
+                    id="more-tools"
+                  >
+                    More free tools
+                  </h2>
+                  <ul className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
+                    {siteConfig.moreTools.map((tool) => (
+                      <li key={tool.href}>
+                        <Link
+                          className={footerLinkClass}
+                          href={tool.href}
+                          rel="noopener"
+                          target="_blank"
+                        >
+                          {tool.label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </nav>
                 <p className="text-sm text-default-600">
                   Built by{" "}
                   <Link
@@ -91,79 +146,20 @@ export default function RootLayout({
                     href={siteConfig.author.url}
                     rel="noopener"
                     target="_blank"
-                    title="Muhammad Ahmad's portfolio"
                   >
-                    {siteConfig.author.name}
+                    {siteConfig.author.name}, web &amp; mobile app developer
                   </Link>{" "}
-                  — web &amp; mobile app developer in {siteConfig.author.city},{" "}
-                  {siteConfig.author.country}
-                </p>
-                <nav
-                  aria-label="More from Muhammad Ahmad"
-                  className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1"
-                >
+                  in {siteConfig.author.city}, {siteConfig.author.country}
+                  {" · "}
                   <Link
                     className={footerLinkClass}
                     href={siteConfig.links.caseStudy}
                     rel="noopener"
                     target="_blank"
                   >
-                    How it was built
+                    How this year progress bar was built
                   </Link>
-                  <Link
-                    className={footerLinkClass}
-                    href={siteConfig.links.downloader}
-                    rel="noopener"
-                    target="_blank"
-                    title="DWM Downloader: free video downloader"
-                  >
-                    DWM Downloader
-                  </Link>
-                  <Link
-                    className={footerLinkClass}
-                    href={siteConfig.links.compressor}
-                    rel="noopener"
-                    target="_blank"
-                    title="DWM Compressor: compress PDFs, images and video in your browser"
-                  >
-                    DWM Compressor
-                  </Link>
-                  <Link
-                    className={footerLinkClass}
-                    href={siteConfig.links.qr}
-                    rel="noopener"
-                    target="_blank"
-                    title="DWM QR: free QR code generator with logos and expiry"
-                  >
-                    DWM QR
-                  </Link>
-                  <Link
-                    className={footerLinkClass}
-                    href={siteConfig.links.bgremove}
-                    rel="noopener"
-                    target="_blank"
-                    title="DWM BG Remover: remove image backgrounds with AI"
-                  >
-                    DWM BG Remover
-                  </Link>
-                  <Link
-                    className={footerLinkClass}
-                    href={siteConfig.links.ip}
-                    rel="noopener"
-                    target="_blank"
-                    title="DWM IP: what is my IP address"
-                  >
-                    DWM IP
-                  </Link>
-                  <Link
-                    className={footerLinkClass}
-                    href={siteConfig.links.emailcheck}
-                    rel="noopener"
-                    target="_blank"
-                    title="DWM Email Checker: check if an email address exists"
-                  >
-                    DWM Email Checker
-                  </Link>
+                  {" · "}
                   <Link
                     className={footerLinkClass}
                     href={siteConfig.links.github}
@@ -172,7 +168,13 @@ export default function RootLayout({
                   >
                     GitHub
                   </Link>
-                </nav>
+                </p>
+                <p className="text-xs text-default-500">
+                  Updated{" "}
+                  <time dateTime={CONTENT_UPDATED}>
+                    {CONTENT_UPDATED_LABEL}
+                  </time>
+                </p>
                 <VisitorCounter />
               </div>
             </footer>
