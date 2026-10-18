@@ -2,6 +2,7 @@ import * as React from "react";
 
 import { IconSvgProps } from "@/types";
 
+/** The Progress mark: the year as a ring on a dark tile (same art as public/icon.svg). */
 export const Logo: React.FC<IconSvgProps> = ({
   size = 36,
   width,
@@ -9,17 +10,28 @@ export const Logo: React.FC<IconSvgProps> = ({
   ...props
 }) => (
   <svg
-    fill="none"
+    aria-hidden
     height={size || height}
-    viewBox="0 0 32 32"
+    viewBox="0 0 512 512"
     width={size || width}
     {...props}
   >
+    <rect fill="#111113" height="512" rx="112" width="512" />
+    <circle
+      cx="256"
+      cy="256"
+      fill="none"
+      r="118"
+      stroke="#ffffff"
+      strokeOpacity={0.16}
+      strokeWidth={56}
+    />
     <path
-      clipRule="evenodd"
-      d="M17.6482 10.1305L15.8785 7.02583L7.02979 22.5499H10.5278L17.6482 10.1305ZM19.8798 14.0457L18.11 17.1983L19.394 19.4511H16.8453L15.1056 22.5499H24.7272L19.8798 14.0457Z"
-      fill="currentColor"
-      fillRule="evenodd"
+      d="M256 138a118 118 0 1 1-118 118"
+      fill="none"
+      stroke="#006fee"
+      strokeLinecap="round"
+      strokeWidth={56}
     />
   </svg>
 );

@@ -134,15 +134,30 @@ export async function renderOgImage(variant: OgVariant = "progress") {
           }}
         >
           <div style={{ display: "flex", alignItems: "center" }}>
-            <div
-              style={{
-                width: 18,
-                height: 18,
-                borderRadius: 9,
-                background: colors.primary,
-                marginRight: 16,
-              }}
-            />
+            <svg
+              height="44"
+              style={{ marginRight: 18 }}
+              viewBox="0 0 512 512"
+              width="44"
+            >
+              <rect fill="#111113" height="512" rx="112" width="512" />
+              <circle
+                cx="256"
+                cy="256"
+                fill="none"
+                r="118"
+                stroke="#ffffff"
+                strokeOpacity={0.16}
+                strokeWidth={56}
+              />
+              <path
+                d="M256 138a118 118 0 1 1-118 118"
+                fill="none"
+                stroke={colors.primary}
+                strokeLinecap="round"
+                strokeWidth={56}
+              />
+            </svg>
             <span style={{ fontWeight: 700, letterSpacing: 5 }}>{brand}</span>
           </div>
           <span>{host}</span>

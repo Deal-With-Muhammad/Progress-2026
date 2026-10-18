@@ -39,6 +39,18 @@ export default function Navbar({
 }: NavbarProps) {
   return (
     <HeroUINavbar maxWidth="xl" position="sticky">
+      <NavbarContent className="basis-1/5 sm:basis-full" justify="start">
+        <NavbarBrand as="li" className="max-w-fit">
+          <NextLink
+            aria-label="Progress home"
+            className="flex items-center gap-2.5"
+            href="/"
+          >
+            <Logo className="rounded-[9px]" size={32} />
+            <span className="hidden font-semibold sm:inline">Progress</span>
+          </NextLink>
+        </NavbarBrand>
+      </NavbarContent>
       <NavbarContent
         className="hidden sm:flex basis-1/5 sm:basis-full"
         justify="end"

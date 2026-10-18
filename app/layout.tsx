@@ -60,8 +60,12 @@ export function generateMetadata(): Metadata {
       title: copy.title,
       description: copy.description,
     },
+    // The iOS home-screen icon is app/apple-icon.png.
     icons: {
-      icon: "/favicon.ico",
+      icon: [
+        { url: "/favicon.ico", sizes: "48x48" },
+        { url: "/icon.svg", type: "image/svg+xml" },
+      ],
     },
   };
 }
