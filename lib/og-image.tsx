@@ -19,7 +19,7 @@ const colors = {
   muted: "#a1a1aa",
   subtle: "#d4d4d8",
   track: "#27272a",
-  primary: "#006FEE",
+  primary: "#1f6fe0",
 };
 
 /** Fetch Inter from Google Fonts; returns null (default font) if it fails. */
