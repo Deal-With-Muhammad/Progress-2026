@@ -140,23 +140,27 @@ export async function renderOgImage(variant: OgVariant = "progress") {
               viewBox="0 0 512 512"
               width="44"
             >
-              <rect fill="#111113" height="512" rx="112" width="512" />
-              <circle
-                cx="256"
-                cy="256"
-                fill="none"
-                r="118"
-                stroke="#ffffff"
-                strokeOpacity={0.16}
-                strokeWidth={56}
-              />
-              <path
-                d="M256 138a118 118 0 1 1-118 118"
-                fill="none"
-                stroke={colors.primary}
-                strokeLinecap="round"
-                strokeWidth={56}
-              />
+              <rect fill="#1f6fe0" height="512" rx="112" width="512" />
+              <g transform="translate(72 72) scale(.72)">
+                <path
+                  d="M160 96H160A36 36 0 0 1 196 132V380A36 36 0 0 1 160 416H160A36 36 0 0 1 124 380V132A36 36 0 0 1 160 96Z"
+                  fill="#ffffff"
+                  fillRule="evenodd"
+                />
+                <path
+                  d="M196 132H268A92 92 0 0 1 268 316H196"
+                  fill="none"
+                  stroke="#ffffff"
+                  strokeWidth="72"
+                  opacity={0.3}
+                />
+                <path
+                  d="M196 132H268A92 92 0 0 1 344 270"
+                  fill="none"
+                  stroke="#ffffff"
+                  strokeWidth="72"
+                />
+              </g>
             </svg>
             <span style={{ fontWeight: 700, letterSpacing: 5 }}>{brand}</span>
           </div>
